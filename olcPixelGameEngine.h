@@ -212,20 +212,22 @@
 
 
 // Standard includes
+// Sorry I rearranged your headers.
+// I was tracking down the source of constant crashes on switch.
 #include <string>
 #include <chrono>
 #include <atomic>
 #include <fstream>
 #include <map>
 #include <functional>
+#include <vector>
+#include <cmath>
 
 #ifndef __SWITCH__
 #include <thread>
-#include <cmath>
 #include <cstdint>
 #include <iostream>
 #include <streambuf>
-#include <vector>
 #include <list>
 #include <condition_variable>
 #endif
