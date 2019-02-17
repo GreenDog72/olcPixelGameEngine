@@ -553,9 +553,18 @@ namespace olc // All OneLoneCoder stuff will now exist in the "olc" namespace
 		
 		NWindow*    olc_WindowCreate();
 		
+		bool        softMouseEnabled = false;
+		
+		float       softMouseX = 0;
+		float       softMouseY = 0;
+		
+		float       softMouseV = 170.0;
+		
 public:
 		void SetHandheldPixelSize(uint32_t w, uint32_t h);
 		void SetDockedPixelSize(uint32_t w, uint32_t h);
+		
+		void EnableSoftwareMouse(bool enable);
 #endif
 
 	};
@@ -1121,8 +1130,8 @@ namespace olc
 		
 		
 #else // __SWITCH__ defined
-		// you know what?
 		// switch doesn't have std::thread
+		// you know what?
 		// fuck std::thread
 		// we don't need threads
 		
@@ -1857,6 +1866,26 @@ namespace olc
 					pKeyboardState[key].bReleased = (kr & mask) != 0;
 					mask <<= 1;
 				}
+				
+				if (softMouseEnabled) {
+					JoystickPosition jpos;
+					
+					hidJoystickRead(&jpos, CONTROLLER_P1_AUTO, JOYSTICK_LEFT);
+					
+					softMouseX += ((float)jpos.dx / JOYSTICK_MAX) * softMouseV * fElapsedTime;
+					softMouseY -= ((float)jpos.dy / JOYSTICK_MAX) * softMouseV * fElapsedTime;
+					
+					if (softMouseX < 0) softMouseX = 0;
+					if (softMouseX > fbWidth) softMouseX = fbWidth;
+					
+					if (softMouseY < 0) softMouseY = 0;
+					if (softMouseY > fbHeight) softMouseY = fbHeight;
+					
+					olc_UpdateMouse(softMouseX - screenOffsetX, softMouseY - screenOffsetY);
+					
+					pMouseState[0] = pKeyboardState[JC_A];
+					pMouseState[1] = pKeyboardState[JC_B];
+				}
 #endif
 
 #ifdef OLC_DBG_OVERDRAW
@@ -1914,6 +1943,15 @@ namespace olc
 				u32 stride;
 				u32* framebuf = (u32*)framebufferBegin(&olc_Framebuffer, &stride);
 				
+				u32* p = framebuf;
+				
+				for (u32 y = 0; y < fbHeight; y++) {
+					for (u32 x = 0; x < fbWidth; x++) {
+						*p = BLACK.n;
+						p++;
+					}
+				}
+				
 				for (u32 y = 0, dy = screenOffsetY; y < nScreenHeight && dy < fbHeight; y++) {
 					for (u32 py = 0; py < nPixelHeight; py++, dy++) {
 						for (u32 x = 0, dx = screenOffsetX; x < nScreenWidth && dx < fbWidth; x++) {
@@ -1923,6 +1961,24 @@ namespace olc
 								framebuf[fpos] = pixels[spos].n;
 							}
 						}
+					}
+				}
+				
+				if (softMouseEnabled) {
+					int mouseX = softMouseX;
+					int mouseY = softMouseY;
+					
+					for (int x = mouseX - 5; x <= mouseX + 5; x++) {
+						if (x < 0 || x > (int)fbWidth)
+							continue;
+						u32 pos = (mouseY * stride / sizeof(u32)) + x;
+						framebuf[pos] = WHITE.n;
+					}
+					for (int y = mouseY - 5; y <= mouseY + 5; y++) {
+						if (y < 0 || y > (int)fbHeight)
+							continue;
+						u32 pos = (y * stride / sizeof(u32)) + mouseX;
+						framebuf[pos] = WHITE.n;
 					}
 				}
 				
@@ -2253,6 +2309,23 @@ namespace olc
 	void PixelGameEngine::SetDockedPixelSize(uint32_t w, uint32_t h) {
 		nDockedPixelWidth = w;
 		nDockedPixelHeight = h;
+	}
+	
+	void PixelGameEngine::EnableSoftwareMouse(bool enable) {
+		if (enable) {
+			if (!softMouseEnabled) {
+				softMouseEnabled = true;
+				softMouseX = fbWidth / 2;
+				softMouseY = fbHeight / 2;
+			}
+		}
+		else {
+			if (softMouseEnabled) {
+				softMouseEnabled = false;
+				softMouseX = 0;
+				softMouseY = 0;
+			}
+		}
 	}
 #endif
 
