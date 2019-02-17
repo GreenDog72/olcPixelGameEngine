@@ -176,6 +176,7 @@
 #ifndef OLC_PGE_DEF
 #define OLC_PGE_DEF
 
+#ifndef __SWITCH__
 #ifdef _WIN32
 	// Link to libraries
 #ifndef __MINGW32__
@@ -204,23 +205,30 @@
 	typedef int(glSwapInterval_t) (Display *dpy, GLXDrawable drawable, int interval);
 	static glSwapInterval_t *glSwapIntervalEXT;
 #endif
+#else // __SWITCH__ defined
+	#include <png.h>
+	#include <switch.h>
+#endif
 
 
 // Standard includes
-#include <cmath>
-#include <cstdint>
 #include <string>
-#include <iostream>
-#include <streambuf>
 #include <chrono>
-#include <vector>
-#include <list>
-#include <thread>
 #include <atomic>
-#include <condition_variable>
 #include <fstream>
 #include <map>
 #include <functional>
+
+#ifndef __SWITCH__
+#include <thread>
+#include <cmath>
+#include <cstdint>
+#include <iostream>
+#include <streambuf>
+#include <vector>
+#include <list>
+#include <condition_variable>
+#endif
 
 #undef min
 #undef max
@@ -354,6 +362,14 @@ namespace olc // All OneLoneCoder stuff will now exist in the "olc" namespace
 		BACK, ESCAPE, RETURN, ENTER, PAUSE, SCROLL,
 		NP0, NP1, NP2, NP3, NP4, NP5, NP6, NP7, NP8, NP9,
 		NP_MUL, NP_DIV, NP_ADD, NP_SUB, NP_DECIMAL,
+#ifdef __SWITCH__
+		// joycon buttons
+		JC_A, JC_B, JC_X, JC_Y, JC_LSTICK, JC_RSTICK, JC_L, JC_R, JC_ZL, JC_ZR,
+		JC_PLUS, JC_MINUS, JC_DLEFT, JC_DUP, JC_DRIGHT, JC_DDOWN,
+		JC_LSTICK_LEFT, JC_LSTICK_UP, JC_LSTICK_RIGHT, JC_LSTICK_DOWN,
+		JC_RSTICK_LEFT, JC_RSTICK_UP, JC_RSTICK_RIGHT, JC_RSTICK_DOWN,
+		JC_SL_LEFT, JC_SR_LEFT, JC_SL_RIGHT, JC_SR_RIGHT
+#endif
 	};
 
 
@@ -477,6 +493,7 @@ namespace olc // All OneLoneCoder stuff will now exist in the "olc" namespace
 		bool		pMouseOldState[5]{ 0 };
 		HWButton	pMouseState[5];
 
+#ifndef __SWITCH__
 #ifdef _WIN32
 		HDC			glDeviceContext = nullptr;
 		HGLRC		glRenderContext = nullptr;
@@ -485,6 +502,7 @@ namespace olc // All OneLoneCoder stuff will now exist in the "olc" namespace
 		GLXContext	glRenderContext = nullptr;
 #endif
 		GLuint		glBuffer;
+#endif
 
 		void		EngineThread();
 
@@ -497,6 +515,7 @@ namespace olc // All OneLoneCoder stuff will now exist in the "olc" namespace
 		bool olc_OpenGLCreate();
 		void olc_ConstructFontSheet();
 
+#ifndef __SWITCH__
 #ifdef _WIN32
 		// Windows specific window handling
 		HWND olc_hWnd = nullptr;
@@ -512,6 +531,29 @@ namespace olc // All OneLoneCoder stuff will now exist in the "olc" namespace
 		Colormap                olc_ColourMap;
 		XSetWindowAttributes    olc_SetWindowAttribs;
 		Display*				olc_WindowCreate();
+#endif
+#else // __SWITCH__ defined
+		NWindow*    olc_Window;
+		Framebuffer olc_Framebuffer;
+		
+		u32         fbWidth = 1280;
+		u32         fbHeight = 720;
+		
+		u32         screenOffsetX = 0;
+		u32         screenOffsetY = 0;
+		
+		u8          operationMode;
+		
+		uint32_t    nDockedPixelWidth;
+		uint32_t    nDockedPixelHeight;
+		uint32_t    nHandheldPixelWidth;
+		uint32_t    nHandheldPixelHeight;
+		
+		NWindow*    olc_WindowCreate();
+		
+public:
+		void SetHandheldPixelSize(uint32_t w, uint32_t h);
+		void SetDockedPixelSize(uint32_t w, uint32_t h);
 #endif
 
 	};
@@ -582,6 +624,7 @@ namespace olc
 
 	std::wstring ConvertS2W(std::string s)
 	{
+#ifndef __SWITCH__
 #ifdef _WIN32
 		int count = MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, NULL, 0);
 		wchar_t* buffer = new wchar_t[count];
@@ -591,6 +634,9 @@ namespace olc
 		return w;
 #else
 		return L"SVN FTW!";
+#endif
+#else // __SWITCH__ defined
+		return L"CONSOLE PEASANT";
 #endif
 	}
 
@@ -715,6 +761,8 @@ namespace olc
 		////////////////////////////////////////////////////////////////////////////
 		// Use libpng, Thanks to Guillaume Cottenceau
 		// https://gist.github.com/niw/5963798
+		//
+		// switch can use libpng as well. thank god.
 		png_structp png;
 		png_infop info;
 
@@ -1006,6 +1054,11 @@ namespace olc
 		nScreenHeight = screen_h;
 		nPixelWidth = pixel_w;
 		nPixelHeight = pixel_h;
+		
+#ifdef __SWITCH__
+		SetDockedPixelSize(pixel_w, pixel_h);
+		SetHandheldPixelSize(pixel_w, pixel_h);
+#endif
 
 		fPixelX = 2.0f / (float)(nScreenWidth);
 		fPixelY = 2.0f / (float)(nScreenHeight);
@@ -1045,6 +1098,8 @@ namespace olc
 		// Linux use libpng
 
 #endif
+
+#ifndef __SWITCH__
 		// Start the thread
 		bAtomActive = true;
 		std::thread t = std::thread(&PixelGameEngine::EngineThread, this);
@@ -1061,6 +1116,18 @@ namespace olc
 
 		// Wait for thread to be exited
 		t.join();
+		
+		
+#else // __SWITCH__ defined
+		// you know what?
+		// switch doesn't have std::thread
+		// fuck std::thread
+		// we don't need threads
+		
+		bAtomActive = true;
+		EngineThread();
+#endif
+		
 		return olc::OK;
 	}
 
@@ -1413,8 +1480,13 @@ namespace olc
 				else              t2x += signx2;
 			}
 		next2:
-			if (minx>t1x) minx = t1x; if (minx>t2x) minx = t2x;
-			if (maxx<t1x) maxx = t1x; if (maxx<t2x) maxx = t2x;
+			// sorry javid. I didn't actually change this code
+			// my compiler gave me notes saying these ifs on the same line were 'misleading indentation'
+			// I put them on seperate lines to shut it up. It compiled either way.
+			if (minx>t1x) minx = t1x;
+			if (minx>t2x) minx = t2x;
+			if (maxx<t1x) maxx = t1x;
+			if (maxx<t2x) maxx = t2x;
 			drawline(minx, maxx, y);    // Draw line from min to max points found on the y
 										// Now increase y
 			if (!changed1) t1x += signx1;
@@ -1469,9 +1541,12 @@ namespace olc
 				else              t2x += signx2;
 			}
 		next4:
-
-			if (minx>t1x) minx = t1x; if (minx>t2x) minx = t2x;
-			if (maxx<t1x) maxx = t1x; if (maxx<t2x) maxx = t2x;
+			// just the same notes here
+			// moved ifs to seperate lines again
+			if (minx>t1x) minx = t1x;
+			if (minx>t2x) minx = t2x;
+			if (maxx<t1x) maxx = t1x;
+			if (maxx<t2x) maxx = t2x;
 			drawline(minx, maxx, y);
 			if (!changed1) t1x += signx1;
 			t1x += t1xp;
@@ -1618,6 +1693,7 @@ namespace olc
 
 	void PixelGameEngine::EngineThread()
 	{
+#ifndef __SWITCH__
 		// Start OpenGL, the context is owned by the game thread
 		olc_OpenGLCreate();
 
@@ -1630,7 +1706,9 @@ namespace olc
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, nScreenWidth, nScreenHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, pDefaultDrawTarget->GetData());
-
+#else // __SWITCH defined
+		// switch isn't using opengl
+#endif
 
 		// Create user resources as part of this thread
 		if (!OnUserCreate())
@@ -1638,12 +1716,26 @@ namespace olc
 
 		auto tp1 = std::chrono::system_clock::now();
 		auto tp2 = std::chrono::system_clock::now();
-
+		
 		while (bAtomActive)
 		{
 			// Run as fast as possible
+#ifdef __SWITCH__
+			while (appletMainLoop() && bAtomActive)
+#else
 			while (bAtomActive)
+#endif
 			{
+#ifdef __SWITCH__
+				u8 newOpMode = appletGetOperationMode();
+				
+				if (newOpMode != operationMode) {
+					framebufferClose(&olc_Framebuffer);
+					if (!olc_WindowCreate())
+						bAtomActive = false;
+				}
+#endif
+				
 				// Handle Timing
 				tp2 = std::chrono::system_clock::now();
 				std::chrono::duration<float> elapsedTime = tp2 - tp1;
@@ -1652,6 +1744,7 @@ namespace olc
 				// Our time per frame coefficient
 				float fElapsedTime = elapsedTime.count();
 
+#ifndef __SWITCH__
 #ifndef _WIN32
 				// Handle Xlib Message Loop - we do this in the
 				// same thread that OpenGL was created so we dont
@@ -1748,6 +1841,21 @@ namespace olc
 
 					pMouseOldState[i] = pMouseNewState[i];
 				}
+#else // __SWITCH__ defined
+				hidScanInput();
+				
+				u64 kp = hidKeysDown(CONTROLLER_P1_AUTO);
+				u64 kh = hidKeysHeld(CONTROLLER_P1_AUTO);
+				u64 kr = hidKeysUp(CONTROLLER_P1_AUTO);
+				u64 mask = 1;
+				
+				for (int key = Key::JC_A; key <= Key::JC_SR_RIGHT; key++) {
+					pKeyboardState[key].bPressed  = (kp & mask) != 0;
+					pKeyboardState[key].bHeld     = (kh & mask) != 0;
+					pKeyboardState[key].bReleased = (kr & mask) != 0;
+					mask <<= 1;
+				}
+#endif
 
 #ifdef OLC_DBG_OVERDRAW
 				olc::Sprite::nOverdrawCount = 0;
@@ -1759,6 +1867,7 @@ namespace olc
 
 				// Display Graphics
 
+#ifndef __SWITCH__
 				// TODO: This is a bit slow (especially in debug, but 100x faster in release mode???)
 				// Copy pixel array into texture
 				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, nScreenWidth, nScreenHeight, GL_RGBA, GL_UNSIGNED_BYTE, pDefaultDrawTarget->GetData());
@@ -1797,6 +1906,26 @@ namespace olc
 #endif
 					nFrameCount = 0;
 				}
+#else // __SWITCH__ defined
+				Pixel * pixels = pDefaultDrawTarget->GetData();
+				
+				u32 stride;
+				u32* framebuf = (u32*)framebufferBegin(&olc_Framebuffer, &stride);
+				
+				for (u32 y = 0, dy = screenOffsetY; y < nScreenHeight && dy < fbHeight; y++) {
+					for (u32 py = 0; py < nPixelHeight; py++, dy++) {
+						for (u32 x = 0, dx = screenOffsetX; x < nScreenWidth && dx < fbWidth; x++) {
+							u32 spos = y * nScreenWidth + x;
+							for (u32 px = 0; px < nPixelWidth; px++, dx++) {
+								u32 fpos = dy * stride / sizeof(u32) + dx;
+								framebuf[fpos] = pixels[spos].n;
+							}
+						}
+					}
+				}
+				
+				framebufferEnd(&olc_Framebuffer);
+#endif
 			}
 
 			// Allow the user to free resources if they have overrided the destroy function
@@ -1811,6 +1940,7 @@ namespace olc
 			}
 		}
 
+#ifndef __SWITCH__
 #ifdef _WIN32
 		wglDeleteContext(glRenderContext);
 		PostMessage(olc_hWnd, WM_DESTROY, 0, 0);
@@ -1819,6 +1949,10 @@ namespace olc
 		glXDestroyContext(olc_Display, glDeviceContext);
 		XDestroyWindow(olc_Display, olc_Window);
 		XCloseDisplay(olc_Display);
+#endif
+#else // __SWITCH__ defined
+		// switch cleanup code
+		framebufferClose(&olc_Framebuffer);
 #endif
 
 	}
@@ -1863,6 +1997,7 @@ namespace olc
 		}
 	}
 
+#ifndef __SWITCH__
 #ifdef _WIN32
 	HWND PixelGameEngine::olc_WindowCreate()
 	{
@@ -2073,6 +2208,50 @@ namespace olc
 		return true;
 	}
 
+#endif
+#else // __SWITCH__ defined
+	NWindow* PixelGameEngine::olc_WindowCreate() {
+		operationMode = appletGetOperationMode();
+		
+		if (operationMode == AppletOperationMode_Docked) {
+			fbWidth = 1920;
+			fbHeight = 1080;
+			nPixelWidth = nDockedPixelWidth;
+			nPixelHeight = nDockedPixelHeight;
+		}
+		else {
+			fbWidth = 1280;
+			fbHeight = 720;
+			nPixelWidth = nHandheldPixelWidth;
+			nPixelHeight = nHandheldPixelHeight;
+		}
+		
+		olc_Window = nwindowGetDefault();
+		
+		framebufferCreate(&olc_Framebuffer, olc_Window, fbWidth, fbHeight, PIXEL_FORMAT_RGBA_8888, 2);
+		framebufferMakeLinear(&olc_Framebuffer);
+		
+		screenOffsetX = (fbWidth - (nScreenWidth * nPixelWidth)) / 2;
+		screenOffsetY = (fbHeight - (nScreenHeight * nPixelHeight)) / 2;
+		
+		if (screenOffsetX > fbWidth)
+			screenOffsetX = 0;
+		
+		if (screenOffsetY > fbHeight)
+			screenOffsetY = 0;
+		
+		return olc_Window;
+	}
+	
+	void PixelGameEngine::SetHandheldPixelSize(uint32_t w, uint32_t h) {
+		nHandheldPixelWidth = w;
+		nHandheldPixelHeight = h;
+	}
+	
+	void PixelGameEngine::SetDockedPixelSize(uint32_t w, uint32_t h) {
+		nDockedPixelWidth = w;
+		nDockedPixelHeight = h;
+	}
 #endif
 
 	// Need a couple of statics as these are singleton instances
