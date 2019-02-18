@@ -222,13 +222,13 @@
 #include <functional>
 #include <vector>
 #include <cmath>
+#include <list>
 
 #ifndef __SWITCH__
 #include <thread>
 #include <cstdint>
 #include <iostream>
 #include <streambuf>
-#include <list>
 #include <condition_variable>
 #endif
 
@@ -616,6 +616,8 @@ public:
 
 namespace olc
 {
+	std::string issueString = "";
+	
 	Pixel::Pixel()
 	{
 		r = 0; g = 0; b = 0; a = 255;
@@ -776,9 +778,17 @@ namespace olc
 		// switch can use libpng as well. thank god.
 		png_structp png;
 		png_infop info;
-
+		
+#ifdef __SWITCH__
+		std::string romfspath = "romfs:/";
+		FILE *f = fopen((romfspath + sImageFile).c_str(), "rb");
+#else
 		FILE *f = fopen(sImageFile.c_str(), "rb");
-		if (!f) return olc::NO_FILE;
+#endif
+		if (!f) {
+			issueString = "could not load " + sImageFile;
+			return olc::NO_FILE;
+		}
 
 		png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 		if (!png) goto fail_load;
@@ -1057,6 +1067,10 @@ namespace olc
 	{
 		sAppName = "Undefined";
 		olc::PGEX::pge = this;
+		
+#ifdef __SWITCH__
+		romfsInit();
+#endif
 	}
 
 	olc::rcode PixelGameEngine::Construct(uint32_t screen_w, uint32_t screen_h, uint32_t pixel_w, uint32_t pixel_h)
@@ -1945,6 +1959,8 @@ namespace olc
 				
 				u32* p = framebuf;
 				
+				DrawString(0, 0, issueString, YELLOW, 1);
+				
 				for (u32 y = 0; y < fbHeight; y++) {
 					for (u32 x = 0; x < fbWidth; x++) {
 						*p = BLACK.n;
@@ -2011,6 +2027,7 @@ namespace olc
 #else // __SWITCH__ defined
 		// switch cleanup code
 		framebufferClose(&olc_Framebuffer);
+		romfsExit();
 #endif
 
 	}

@@ -92,6 +92,21 @@ public:
 	std::vector<polygon> vecShapes;
 
 	int nMode = 0;
+	
+	olc::Key shape1up    = olc::Key::UP;
+	olc::Key shape1down  = olc::Key::DOWN;
+	olc::Key shape1left  = olc::Key::LEFT;
+	olc::Key shape1right = olc::Key::RIGHT;
+	
+	olc::Key shape2up    = olc::Key::W;
+	olc::Key shape2down  = olc::Key::S;
+	olc::Key shape2left  = olc::Key::A;
+	olc::Key shape2right = olc::Key::D;
+	
+	olc::Key mode1key = olc::Key::F1;
+	olc::Key mode2key = olc::Key::F2;
+	olc::Key mode3key = olc::Key::F3;
+	olc::Key mode4key = olc::Key::F4;
 
 public:
 	bool OnUserCreate() override
@@ -132,6 +147,24 @@ public:
 		vecShapes.push_back(s1);
 		vecShapes.push_back(s2);
 		vecShapes.push_back(s3);
+		
+#ifdef __SWITCH__
+		shape1up    = olc::Key::JC_LSTICK_UP;
+		shape1down  = olc::Key::JC_LSTICK_DOWN;
+		shape1left  = olc::Key::JC_LSTICK_LEFT;
+		shape1right = olc::Key::JC_LSTICK_RIGHT;
+		
+		shape2up    = olc::Key::JC_RSTICK_UP;
+		shape2down  = olc::Key::JC_RSTICK_DOWN;
+		shape2left  = olc::Key::JC_RSTICK_LEFT;
+		shape2right = olc::Key::JC_RSTICK_RIGHT;
+		
+		mode1key = olc::Key::JC_L;
+		mode2key = olc::Key::JC_ZL;
+		mode3key = olc::Key::JC_R;
+		mode4key = olc::Key::JC_ZR;
+#endif
+		
 		return true;
 	}
 
@@ -150,7 +183,7 @@ public:
 				poly2 = &r1;
 			}
 		
-			for (int a = 0; a < poly1->p.size(); a++)
+			for (unsigned int a = 0; a < poly1->p.size(); a++)
 			{
 				int b = (a + 1) % poly1->p.size();
 				vec2d axisProj = { -(poly1->p[b].y - poly1->p[a].y), poly1->p[b].x - poly1->p[a].x };
@@ -159,7 +192,7 @@ public:
 
 				// Work out min and max 1D points for r1
 				float min_r1 = INFINITY, max_r1 = -INFINITY;
-				for (int p = 0; p < poly1->p.size(); p++)
+				for (unsigned int p = 0; p < poly1->p.size(); p++)
 				{
 					float q = (poly1->p[p].x * axisProj.x + poly1->p[p].y * axisProj.y);
 					min_r1 = std::min(min_r1, q);
@@ -168,7 +201,7 @@ public:
 
 				// Work out min and max 1D points for r2
 				float min_r2 = INFINITY, max_r2 = -INFINITY;
-				for (int p = 0; p < poly2->p.size(); p++)
+				for (unsigned int p = 0; p < poly2->p.size(); p++)
 				{
 					float q = (poly2->p[p].x * axisProj.x + poly2->p[p].y * axisProj.y);
 					min_r2 = std::min(min_r2, q);
@@ -198,7 +231,7 @@ public:
 				poly2 = &r1;
 			}
 
-			for (int a = 0; a < poly1->p.size(); a++)
+			for (unsigned int a = 0; a < poly1->p.size(); a++)
 			{
 				int b = (a + 1) % poly1->p.size();
 				vec2d axisProj = { -(poly1->p[b].y - poly1->p[a].y), poly1->p[b].x - poly1->p[a].x };
@@ -209,7 +242,7 @@ public:
 
 				// Work out min and max 1D points for r1
 				float min_r1 = INFINITY, max_r1 = -INFINITY;
-				for (int p = 0; p < poly1->p.size(); p++)
+				for (unsigned int p = 0; p < poly1->p.size(); p++)
 				{
 					float q = (poly1->p[p].x * axisProj.x + poly1->p[p].y * axisProj.y);
 					min_r1 = std::min(min_r1, q);
@@ -218,7 +251,7 @@ public:
 
 				// Work out min and max 1D points for r2
 				float min_r2 = INFINITY, max_r2 = -INFINITY;
-				for (int p = 0; p < poly2->p.size(); p++)
+				for (unsigned int p = 0; p < poly2->p.size(); p++)
 				{
 					float q = (poly2->p[p].x * axisProj.x + poly2->p[p].y * axisProj.y);
 					min_r2 = std::min(min_r2, q);
@@ -257,13 +290,13 @@ public:
 			}
 			
 			// Check diagonals of polygon...
-			for (int p = 0; p < poly1->p.size(); p++)
+			for (unsigned int p = 0; p < poly1->p.size(); p++)
 			{
 				vec2d line_r1s = poly1->pos;
 				vec2d line_r1e = poly1->p[p];
 
 				// ...against edges of the other
-				for (int q = 0; q < poly2->p.size(); q++)
+				for (unsigned int q = 0; q < poly2->p.size(); q++)
 				{
 					vec2d line_r2s = poly2->p[q];
 					vec2d line_r2e = poly2->p[(q + 1) % poly2->p.size()];
@@ -298,7 +331,7 @@ public:
 			}
 
 			// Check diagonals of this polygon...
-			for (int p = 0; p < poly1->p.size(); p++)
+			for (unsigned int p = 0; p < poly1->p.size(); p++)
 			{
 				vec2d line_r1s = poly1->pos;
 				vec2d line_r1e = poly1->p[p];
@@ -306,7 +339,7 @@ public:
 				vec2d displacement = { 0,0 };
 
 				// ...against edges of this polygon
-				for (int q = 0; q < poly2->p.size(); q++)
+				for (unsigned int q = 0; q < poly2->p.size(); q++)
 				{
 					vec2d line_r2s = poly2->p[q];
 					vec2d line_r2e = poly2->p[(q + 1) % poly2->p.size()];
@@ -332,42 +365,40 @@ public:
 		return false;
 	}
 
-	
-
 	bool OnUserUpdate(float fElapsedTime) override
 	{
-		if (GetKey(olc::Key::F1).bReleased) nMode = 0;
-		if (GetKey(olc::Key::F2).bReleased) nMode = 1;
-		if (GetKey(olc::Key::F3).bReleased) nMode = 2;
-		if (GetKey(olc::Key::F4).bReleased) nMode = 3;
+		if (GetKey(mode1key).bReleased) nMode = 0;
+		if (GetKey(mode2key).bReleased) nMode = 1;
+		if (GetKey(mode3key).bReleased) nMode = 2;
+		if (GetKey(mode4key).bReleased) nMode = 3;
 		
 		// Shape 1
-		if (GetKey(olc::Key::LEFT).bHeld) vecShapes[0].angle -= 2.0f * fElapsedTime;
-		if (GetKey(olc::Key::RIGHT).bHeld) vecShapes[0].angle += 2.0f * fElapsedTime;
+		if (GetKey(shape1left).bHeld) vecShapes[0].angle -= 2.0f * fElapsedTime;
+		if (GetKey(shape1right).bHeld) vecShapes[0].angle += 2.0f * fElapsedTime;
 
-		if (GetKey(olc::Key::UP).bHeld)
+		if (GetKey(shape1up).bHeld)
 		{
 			vecShapes[0].pos.x += cosf(vecShapes[0].angle) * 60.0f * fElapsedTime;
 			vecShapes[0].pos.y += sinf(vecShapes[0].angle) * 60.0f * fElapsedTime;
 		}
 
-		if (GetKey(olc::Key::DOWN).bHeld)
+		if (GetKey(shape1down).bHeld)
 		{
 			vecShapes[0].pos.x -= cosf(vecShapes[0].angle) * 60.0f * fElapsedTime;
 			vecShapes[0].pos.y -= sinf(vecShapes[0].angle) * 60.0f * fElapsedTime;
 		}
 
 		// Shape 2
-		if (GetKey(olc::Key::A).bHeld) vecShapes[1].angle -= 2.0f * fElapsedTime;
-		if (GetKey(olc::Key::D).bHeld) vecShapes[1].angle += 2.0f * fElapsedTime;
+		if (GetKey(shape2left).bHeld) vecShapes[1].angle -= 2.0f * fElapsedTime;
+		if (GetKey(shape2right).bHeld) vecShapes[1].angle += 2.0f * fElapsedTime;
 
-		if (GetKey(olc::Key::W).bHeld)
+		if (GetKey(shape2up).bHeld)
 		{
 			vecShapes[1].pos.x += cosf(vecShapes[1].angle) * 60.0f * fElapsedTime;
 			vecShapes[1].pos.y += sinf(vecShapes[1].angle) * 60.0f * fElapsedTime;
 		}
 
-		if (GetKey(olc::Key::S).bHeld)
+		if (GetKey(shape2down).bHeld)
 		{
 			vecShapes[1].pos.x -= cosf(vecShapes[1].angle) * 60.0f * fElapsedTime;
 			vecShapes[1].pos.y -= sinf(vecShapes[1].angle) * 60.0f * fElapsedTime;
@@ -376,7 +407,7 @@ public:
 		// Update Shapes and reset flags
 		for (auto &r : vecShapes)
 		{
-			for (int i = 0; i < r.o.size(); i++)
+			for (unsigned int i = 0; i < r.o.size(); i++)
 				r.p[i] =
 				{	// 2D Rotation Transform + 2D Translation
 					(r.o[i].x * cosf(r.angle)) - (r.o[i].y * sinf(r.angle)) + r.pos.x,
@@ -387,8 +418,8 @@ public:
 		}
 
 		// Check for overlap
-		for (int m = 0; m < vecShapes.size(); m++)
-			for (int n = m + 1; n < vecShapes.size(); n++)
+		for (unsigned int m = 0; m < vecShapes.size(); m++)
+			for (unsigned int n = m + 1; n < vecShapes.size(); n++)
 			{
 				switch (nMode)
 				{
@@ -406,7 +437,7 @@ public:
 		for (auto &r : vecShapes)
 		{
 			// Draw Boundary
-			for (int i = 0; i < r.p.size(); i++)
+			for (unsigned int i = 0; i < r.p.size(); i++)
 				DrawLine(r.p[i].x, r.p[i].y, r.p[(i + 1) % r.p.size()].x, r.p[(i + 1) % r.p.size()].y, (r.overlap ? olc::RED : olc::WHITE));
 
 			// Draw Direction
@@ -419,6 +450,10 @@ public:
 		DrawString(8, 30, "F3: DIAG", (nMode == 2 ? olc::RED : olc::YELLOW));
 		DrawString(8, 40, "F4: DIAG/STATIC", (nMode == 3 ? olc::RED : olc::YELLOW));
 
+#ifdef __SWITCH__
+		if (GetKey(olc::Key::JC_PLUS).bPressed) return false;
+#endif
+
 		return true;
 	}
 };
@@ -428,7 +463,11 @@ public:
 int main()
 {
 	PolygonCollisions demo;
-	if (demo.Construct(256, 240, 4, 4))
+	if (demo.Construct(256, 240, 4, 4)) {
+#ifdef __SWITCH__
+		demo.SetHandheldPixelSize(3, 3);
+#endif
 		demo.Start();
+	}
 	return 0;
 }

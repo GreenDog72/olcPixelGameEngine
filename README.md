@@ -1,8 +1,9 @@
 # olcPixelGameEngine
-The official distribution of olcPixelGameEngine, a tool used in javidx9's YouTube videos and projects
+The unofficial switch port of olcPixelGameEngine, a tool used in javidx9's YouTube videos and projects
 
 # Documentation
 Please see https://github.com/OneLoneCoder/olcPixelGameEngine/wiki
+See below for extra features of the switch port.
 
 # License (OLC-3)
 
@@ -35,3 +36,8 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Switch Features
+New Key enumerations for Joycon buttons.
+Software emulated mouse, using the left thumbstick of the Joycons.
+Individual pixel sizes for Docked and Handheld mode.

@@ -444,7 +444,7 @@ public:
 			Clear(olc::BLANK);
 
 			// Draw each triangle in fan
-			for (int i = 0; i < vecVisibilityPolygonPoints.size() - 1; i++)
+			for (unsigned int i = 0; i < vecVisibilityPolygonPoints.size() - 1; i++)
 			{
 				FillTriangle(
 					fSourceX,
@@ -494,6 +494,10 @@ public:
 			FillCircle(e.sx, e.sy, 3, olc::RED);
 			FillCircle(e.ex, e.ey, 3, olc::RED);
 		}
+		
+#ifdef __SWITCH__
+		if (GetKey(olc::Key::JC_PLUS).bPressed) return false;
+#endif
 
 		return true;
 	}
@@ -506,6 +510,11 @@ public:
 int main()
 {
 	ShadowCasting2D demo;
-	if (demo.Construct(640, 480, 2, 2))
+	if (demo.Construct(640, 480, 2, 2)) {
+#ifdef __SWITCH__
+		demo.SetHandheldPixelSize(1, 1);
+		demo.EnableSoftwareMouse(true);
+#endif
 		demo.Start();
+	}
 }

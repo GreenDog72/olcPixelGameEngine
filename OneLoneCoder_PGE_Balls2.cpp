@@ -305,7 +305,8 @@ public:
 				// Work out static collisions with walls and displace balls so no overlaps
 				for (auto &ball : vecBalls)
 				{
-					float fDeltaTime = ball.fSimTimeRemaining;
+					// removed some unused variables, my dude
+					//float fDeltaTime = ball.fSimTimeRemaining;
 
 					// Against Edges
 					for (auto &edge : vecLines)
@@ -394,7 +395,7 @@ public:
 					// point and calculate how much time that journey would have taken using the speed of the object. Therefore
 					// we can now work out how much time remains in that timestep.
 					float fIntendedSpeed	= sqrtf(ball.vx * ball.vx + ball.vy * ball.vy);
-					float fIntendedDistance = fIntendedSpeed * ball.fSimTimeRemaining;
+					//float fIntendedDistance = fIntendedSpeed * ball.fSimTimeRemaining;
 					float fActualDistance	= sqrtf((ball.px - ball.ox)*(ball.px - ball.ox) + (ball.py - ball.oy)*(ball.py - ball.oy));
 					float fActualTime = fActualDistance / fIntendedSpeed;
 
@@ -478,7 +479,9 @@ public:
 			DrawLine(pSelectedBall->px, pSelectedBall->py, GetMouseX(), GetMouseY(), olc::Pixel(0, 0, 255));
 
 		
-		
+#ifdef __SWITCH__
+		if (GetKey(olc::Key::JC_PLUS).bPressed) return false;
+#endif
 		
 		return true;
 	}
@@ -490,8 +493,13 @@ int main()
 {
 	
 	CirclePhysics game;
-	if (game.Construct(320, 240, 4, 4))
+	if (game.Construct(320, 240, 4, 4)) {
+#ifdef __SWITCH__
+		game.SetHandheldPixelSize(3, 3);
+		game.EnableSoftwareMouse(true);
+#endif
 		game.Start();
+	}
 	else
 		wcout << L"Could not construct console" << endl;
 

@@ -172,8 +172,13 @@ public:
 	bool OnUserUpdate(float fElapsedTime) override
 	{
 		
+#ifdef __SWITCH__
+		if (GetKey(olc::Key::JC_B).bHeld) fRotate -= 2.0f * fElapsedTime;
+		if (GetKey(olc::Key::JC_A).bHeld) fRotate += 2.0f * fElapsedTime;
+#else
 		if (GetKey(olc::Key::Z).bHeld) fRotate -= 2.0f * fElapsedTime;
 		if (GetKey(olc::Key::X).bHeld) fRotate += 2.0f * fElapsedTime;
+#endif
 		
 		
 		Clear(olc::DARK_CYAN);

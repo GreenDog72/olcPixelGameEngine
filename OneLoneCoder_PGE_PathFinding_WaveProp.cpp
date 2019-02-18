@@ -410,7 +410,10 @@ public:
 				FillCircle(ox * nCellSize + ((nCellSize - nBorderWidth) / 2), oy * nCellSize + ((nCellSize - nBorderWidth) / 2), 10, olc::YELLOW);
 			}
 		}
-
+		
+#ifdef __SWITCH__
+		if (GetKey(olc::Key::JC_PLUS).bPressed) return false;
+#endif
 		
 		return true;
 	}
@@ -420,7 +423,12 @@ public:
 int main()
 {
 	PathFinding_FlowFields demo;
-	if (demo.Construct(512, 480, 2, 2))
+	if (demo.Construct(512, 480, 2, 2)) {
+#ifdef __SWITCH__
+		demo.SetHandheldPixelSize(1, 1);
+		demo.EnableSoftwareMouse(true);
+#endif
 		demo.Start();
+	}
 	return 0;
 }

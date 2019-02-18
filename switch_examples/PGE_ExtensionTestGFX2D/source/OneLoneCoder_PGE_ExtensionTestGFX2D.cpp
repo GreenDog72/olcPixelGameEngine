@@ -174,6 +174,10 @@ public:
 
 		DrawSprite((int32_t)mx, (int32_t)my, spr, 4);
 		
+#ifdef __SWITCH__
+		if (GetKey(olc::Key::JC_PLUS).bPressed) return false;
+#endif
+		
 		return true;
 	}
 };
@@ -182,8 +186,13 @@ public:
 int main()
 {
 	TestExtension demo;
-	if (demo.Construct(640, 480, 2, 2))
+	if (demo.Construct(640, 480, 2, 2)) {
+#ifdef __SWITCH__
+		demo.SetHandheldPixelSize(1, 1);
+		demo.EnableSoftwareMouse(true);
+#endif
 		demo.Start();
+	}
 
 	return 0;
 }

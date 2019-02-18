@@ -172,8 +172,13 @@ public:
 	bool OnUserUpdate(float fElapsedTime) override
 	{
 		
+#ifdef __SWITCH__
+		if (GetKey(olc::Key::JC_B).bHeld) fRotate -= 2.0f * fElapsedTime;
+		if (GetKey(olc::Key::JC_A).bHeld) fRotate += 2.0f * fElapsedTime;
+#else
 		if (GetKey(olc::Key::Z).bHeld) fRotate -= 2.0f * fElapsedTime;
 		if (GetKey(olc::Key::X).bHeld) fRotate += 2.0f * fElapsedTime;
+#endif
 		
 		
 		Clear(olc::DARK_CYAN);
@@ -243,6 +248,10 @@ public:
 		}
 
 		SetPixelMode(olc::Pixel::NORMAL);
+		
+#ifdef __SWITCH__
+		if (GetKey(olc::Key::JC_PLUS).bPressed) return false;
+#endif
 
 		return true;
 	}
@@ -252,6 +261,9 @@ int main()
 {
 	SpriteTransforms demo;
 	if (demo.Construct(256, 240, 4, 4))
+#ifdef __SWITCH__
+		demo.SetHandheldPixelSize(3, 3);
+#endif
 		demo.Start();
 	return 0;
 }
