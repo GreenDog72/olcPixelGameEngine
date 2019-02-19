@@ -223,6 +223,7 @@
 #include <vector>
 #include <cmath>
 #include <list>
+#include <cstring>
 
 #ifndef __SWITCH__
 #include <thread>

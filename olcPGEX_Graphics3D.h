@@ -460,7 +460,8 @@ namespace olc
 		// Return signed shortest distance from point to plane, plane normal must be normalised
 		auto dist = [&](vec3d &p)
 		{
-			vec3d n = Math::Vec_Normalise(p);
+			// you and your unused variables, mate
+			//vec3d n = Math::Vec_Normalise(p);
 			return (plane_n.x * p.x + plane_n.y * p.y + plane_n.z * p.z - Math::Vec_DotProduct(plane_n, plane_p));
 		};
 
