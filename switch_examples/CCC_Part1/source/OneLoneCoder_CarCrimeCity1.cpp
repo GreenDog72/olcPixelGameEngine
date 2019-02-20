@@ -165,10 +165,10 @@ private:
 
 	void LoadCity(std::string sFilename)
 	{
-#ifdef __SWITCH__
-		std::ifstream file("romfs:/" + sFilename, std::ios::in | std::ios::binary);
-#else
 		std::ifstream file(sFilename, std::ios::in | std::ios::binary);
+#ifdef __SWITCH__
+		if (!file.is_open())
+			file.open("romfs:/" + sFilename, std::ios::in | std::ios::binary);
 #endif
 		file.read((char*)&nMapWidth, sizeof(int));
 		file.read((char*)&nMapHeight, sizeof(int));
@@ -322,20 +322,20 @@ public:
 		return true;
 	}
 	
-#ifdef __SWITCH__                               // PS button to ease Javid's confusion
-	olc::Key zoomIn     = olc::Key::JC_R;       // R1
-	olc::Key zoomOut    = olc::Key::JC_L;       // L1
+#ifdef __SWITCH__                                   // PS button to ease Javid's confusion
+	olc::Key zoomIn     = olc::Key::JC_RSTICK_UP;   // Right Stick up
+	olc::Key zoomOut    = olc::Key::JC_RSTICK_DOWN; // Right Stick down
 	
-	olc::Key saveCity   = olc::Key::JC_ZR;      // R2
-	olc::Key loadCity   = olc::Key::JC_ZL;      // L2
+	olc::Key saveCity   = olc::Key::JC_ZL;          // L2
+	olc::Key loadCity   = olc::Key::JC_L;           // L1
 	
-	olc::Key toggleRoad = olc::Key::JC_A;       // Circle
-	olc::Key buildUp    = olc::Key::JC_X;       // Triangle
-	olc::Key buildDown  = olc::Key::JC_Y;       // Square
+	olc::Key toggleRoad = olc::Key::JC_R;           // R1
+	olc::Key buildUp    = olc::Key::JC_X;           // Triangle
+	olc::Key buildDown  = olc::Key::JC_Y;           // Square
 	
-	olc::Key carLeft    = olc::Key::JC_DLEFT;   // Dpad left
-	olc::Key carRight   = olc::Key::JC_DRIGHT;  // Dpad right
-	olc::Key carForward = olc::Key::JC_DUP;     // Dpad up
+	olc::Key carLeft    = olc::Key::JC_DLEFT;       // Dpad left
+	olc::Key carRight   = olc::Key::JC_DRIGHT;      // Dpad right
+	olc::Key carForward = olc::Key::JC_DUP;         // Dpad up
 #else
 	olc::Key zoomIn     = olc::Key::Z;
 	olc::Key zoomOut    = olc::Key::X;
@@ -689,6 +689,11 @@ public:
 
 		// Draw the current camera position for debug information
 		//DrawString(10, 30, "CX: " + std::to_string(fCameraX) + " CY: " + std::to_string(fCameraY) + " CZ: " + std::to_string(fCameraZ));
+
+#ifdef __SWITCH__
+		if (GetKey(olc::Key::JC_PLUS).bPressed) return false;
+#endif
+		
 		return true;
 	} 
 };
@@ -698,7 +703,12 @@ public:
 int main()
 {
 	CarCrimeCity demo;
-	if (demo.Construct(768, 480, 2, 2))
+	if (demo.Construct(768, 480, 2, 2)) {
+#ifdef __SWITCH__
+		demo.SetHandheldPixelSize(1, 1);
+		demo.EnableSoftwareMouse(true);
+#endif
 		demo.Start();
+	}
 	return 0;
 }

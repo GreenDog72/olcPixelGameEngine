@@ -567,7 +567,6 @@ public:
 		
 		void EnableSoftwareMouse(bool enable);
 #endif
-
 	};
 
 
@@ -617,8 +616,13 @@ public:
 
 namespace olc
 {
-	std::string issueString = "";
-	
+#ifdef __SWITCH__
+	// how this log is handled is really bad practice
+	// it's a dirty hack
+	// TODO: implement a singleton logging class
+	std::ofstream logFile;
+#endif
+
 	Pixel::Pixel()
 	{
 		r = 0; g = 0; b = 0; a = 255;
@@ -780,14 +784,18 @@ namespace olc
 		png_structp png;
 		png_infop info;
 		
-#ifdef __SWITCH__
-		std::string romfspath = "romfs:/";
-		FILE *f = fopen((romfspath + sImageFile).c_str(), "rb");
-#else
 		FILE *f = fopen(sImageFile.c_str(), "rb");
-#endif
+
+#ifdef __SWITCH__
 		if (!f) {
-			issueString = "could not load " + sImageFile;
+			f = fopen(("romfs:/" + sImageFile).c_str(), "rb");
+		}
+#endif
+
+		if (!f) {
+#ifdef __SWITCH__
+			logFile << "Could not load " << sImageFile << std::endl;
+#endif
 			return olc::NO_FILE;
 		}
 
@@ -1071,6 +1079,7 @@ namespace olc
 		
 #ifdef __SWITCH__
 		romfsInit();
+		logFile.open("pge.log");
 #endif
 	}
 
@@ -1149,6 +1158,7 @@ namespace olc
 		// you know what?
 		// fuck std::thread
 		// we don't need threads
+		// TODO: learn how to thread on switch
 		
 		bAtomActive = true;
 		EngineThread();
@@ -1747,6 +1757,9 @@ namespace olc
 		{
 			// Run as fast as possible
 #ifdef __SWITCH__
+			// It's required to call appletMainLoop() once per frame
+			// and it's generally dont in the while loop argument
+			// I can't explain why, these people are nuts.
 			while (appletMainLoop() && bAtomActive)
 #else
 			while (bAtomActive)
@@ -1959,9 +1972,6 @@ namespace olc
 				u32* framebuf = (u32*)framebufferBegin(&olc_Framebuffer, &stride);
 				
 				u32* p = framebuf;
-				
-				DrawString(0, 0, issueString, YELLOW, 1);
-				
 				for (u32 y = 0; y < fbHeight; y++) {
 					for (u32 x = 0; x < fbWidth; x++) {
 						*p = BLACK.n;
@@ -2028,9 +2038,9 @@ namespace olc
 #else // __SWITCH__ defined
 		// switch cleanup code
 		framebufferClose(&olc_Framebuffer);
+		logFile.close();
 		romfsExit();
 #endif
-
 	}
 
 
