@@ -1,9 +1,10 @@
 # olcPixelGameEngine
-The unofficial switch port of olcPixelGameEngine, a tool used in javidx9's YouTube videos and projects
+The unofficial switch homebrew port of olcPixelGameEngine, a tool used in javidx9's YouTube videos and projects
+It's not being maintained, and doesn't support 2.0 features. Maybe someday.
 
 # Documentation
 Please see https://github.com/OneLoneCoder/olcPixelGameEngine/wiki
-See below for extra features of the switch port.
+See below the license for extra features of the switch port.
 
 # License (OLC-3)
 
